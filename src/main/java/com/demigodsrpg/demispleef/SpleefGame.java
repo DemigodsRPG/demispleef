@@ -126,7 +126,7 @@ public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
 
         // Update the stage
         if (session.getCurrentRound() == getTotalRounds()) {
-            session.endSession(true);
+            session.endSession(false);
         } else {
             session.updateStage(DefaultStage.RESET, true);
         }
