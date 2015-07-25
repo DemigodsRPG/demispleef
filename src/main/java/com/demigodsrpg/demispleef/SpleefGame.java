@@ -33,7 +33,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import java.util.Optional;
 
 public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
     // -- SETTINGS -- //
@@ -109,9 +112,7 @@ public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
 
     @StageHandler(stage = DefaultStage.PLAY)
     public void roundPlay(Session session) {
-
-        // Update the stage
-        session.updateStage(DefaultStage.END, true);
+        // TODO
     }
 
     @StageHandler(stage = DefaultStage.END)
@@ -141,9 +142,16 @@ public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
 
     // -- LISTENERS -- //
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
-        // TODO
+        Optional<Session> opSession = checkPlayer(event.getPlayer());
+        if (opSession.isPresent()) {
+            Session session = opSession.get();
+            if (event.getTo().distance(event.getPlayer().getWorld().getSpawnLocation()) > 10) {
+                // Update the stage
+                session.updateStage(DefaultStage.END, true);
+            }
+        }
     }
 
     // -- META DATA -- //
