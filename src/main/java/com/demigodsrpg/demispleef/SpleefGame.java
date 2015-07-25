@@ -147,7 +147,7 @@ public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
         Optional<Session> opSession = checkPlayer(event.getPlayer());
         if (opSession.isPresent()) {
             Session session = opSession.get();
-            if (event.getTo().distance(event.getPlayer().getWorld().getSpawnLocation()) > 10) {
+            if (DefaultStage.PLAY.equals(session.getStage()) && event.getTo().distance(event.getPlayer().getWorld().getSpawnLocation()) > 10) {
                 // Update the stage
                 session.updateStage(DefaultStage.END, true);
             }
