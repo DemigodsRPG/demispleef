@@ -188,12 +188,12 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     // -- PLAYER JOIN/QUIT -- //
 
     @Override
-    public void onPlayerJoin(Player player) {
+    public void onPlayerJoin(Session session, Player player) {
 
     }
 
     @Override
-    public void onPlayerQuit(Player player) {
+    public void onPlayerQuit(Session session, Player player) {
 
     }
 
