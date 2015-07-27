@@ -166,6 +166,7 @@ public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
         return "Spleef";
     }
 
+
     @Override
     public String getDirectory() {
         return "spleef";
