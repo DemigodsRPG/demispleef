@@ -174,17 +174,17 @@ public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
     // -- WIN/LOSE/TIE CONDITIONS -- //
 
     @Override
-    public void onWin(Player player) {
+    public void onWin(Session session, Player player) {
 
     }
 
     @Override
-    public void onLose(Player player) {
+    public void onLose(Session session, Player player) {
 
     }
 
     @Override
-    public void onTie(Player player) {
+    public void onTie(Session session, Player player) {
 
     }
 
