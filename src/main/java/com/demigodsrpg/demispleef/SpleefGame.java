@@ -23,9 +23,11 @@
 package com.demigodsrpg.demispleef;
 
 import com.demigodsrpg.demigames.game.Game;
-import com.demigodsrpg.demigames.game.mixin.setup.NoTeamsMixin;
-import com.demigodsrpg.demigames.game.mixin.warmup.LobbyMixin;
+import com.demigodsrpg.demigames.game.mixin.error.ErrorTimerMixin;
+import com.demigodsrpg.demigames.game.mixin.setup.SetupNoTeamsMixin;
+import com.demigodsrpg.demigames.game.mixin.warmup.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
+import com.demigodsrpg.demigames.impl.util.LocationUtil;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
@@ -38,7 +40,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.Optional;
 
-public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
+public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin {
     // -- SETTINGS -- //
 
     @Override
@@ -76,11 +78,6 @@ public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
         return 0;
     }
 
-    @Override
-    public int getTotalRounds() {
-        return 3;
-    }
-
     // -- LOCATIONS -- //
 
     private Location warmupSpawn;
@@ -90,18 +87,12 @@ public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
         // Get the world
         World world = session.getWorld().get();
 
-        // TODO Config for locations
-
         // Get the warmup spawn
-        warmupSpawn = world.getSpawnLocation();
+        warmupSpawn = LocationUtil.locationFromString(session, getConfig().getString("spawn",
+                LocationUtil.stringFromLocation(world.getSpawnLocation(), false)));
     }
 
     // -- STAGES -- //
-
-    @StageHandler(stage = DefaultStage.ERROR)
-    public void onError(Session session) {
-
-    }
 
     @StageHandler(stage = DefaultStage.BEGIN)
     public void roundBegin(Session session) {
@@ -159,6 +150,11 @@ public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
     @Override
     public Location getWarmupSpawn() {
         return warmupSpawn;
+    }
+
+    @Override
+    public void roundWarmup(Session session) {
+
     }
 
     @Override
