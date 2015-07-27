@@ -23,9 +23,10 @@
 package com.demigodsrpg.demispleef;
 
 import com.demigodsrpg.demigames.game.Game;
-import com.demigodsrpg.demigames.game.mixin.error.ErrorTimerMixin;
-import com.demigodsrpg.demigames.game.mixin.setup.SetupNoTeamsMixin;
-import com.demigodsrpg.demigames.game.mixin.warmup.WarmupLobbyMixin;
+import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
+import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
+import com.demigodsrpg.demigames.game.mixin.SetupNoTeamsMixin;
+import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.impl.util.LocationUtil;
 import com.demigodsrpg.demigames.kit.Kit;
@@ -38,11 +39,12 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.Optional;
 
-public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin {
+public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin, FakeDeathMixin {
     // -- SETTINGS -- //
 
     @Override
@@ -209,8 +211,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         //TODO Teleport player back to the lobby and clear their inventory.
         Kit.EMPTY.apply(player);
 
-
-
     }
 
     // -- START & STOP -- //
@@ -225,5 +225,10 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         for (Session session : Demigames.getSessionRegistry().fromGame(this)) {
             session.endSession(false);
         }
+    }
+
+    @Override
+    public void onDeath(Session session, EntityDamageEvent entityDamageEvent) {
+
     }
 }
