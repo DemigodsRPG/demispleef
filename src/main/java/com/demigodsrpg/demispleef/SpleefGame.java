@@ -23,8 +23,8 @@
 package com.demigodsrpg.demispleef;
 
 import com.demigodsrpg.demigames.game.Game;
-import com.demigodsrpg.demigames.game.mixin.LobbyWarmupMixin;
-import com.demigodsrpg.demigames.game.mixin.NoTeamSetupMixin;
+import com.demigodsrpg.demigames.game.mixin.setup.NoTeamsMixin;
+import com.demigodsrpg.demigames.game.mixin.warmup.LobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
@@ -38,7 +38,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.Optional;
 
-public class SpleefGame implements Game, LobbyWarmupMixin, NoTeamSetupMixin {
+public class SpleefGame implements Game, LobbyMixin, NoTeamsMixin {
     // -- SETTINGS -- //
 
     @Override
