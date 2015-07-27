@@ -28,6 +28,8 @@ import com.demigodsrpg.demigames.game.mixin.setup.SetupNoTeamsMixin;
 import com.demigodsrpg.demigames.game.mixin.warmup.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.impl.util.LocationUtil;
+import com.demigodsrpg.demigames.kit.Kit;
+import com.demigodsrpg.demigames.kit.MutableKit;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
@@ -153,11 +155,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     }
 
     @Override
-    public void roundWarmup(Session session) {
-
-    }
-
-    @Override
     public String getName() {
         return "Spleef";
     }
@@ -189,11 +186,30 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     @Override
     public void onPlayerJoin(Session session, Player player) {
+        //Add the player to the session
+        session.addProfile(Demigames.getProfileRegistry().fromPlayer(player));
+
+        //Add the spleef kit to the player if it is existing
+        Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
+        if(kit.isPresent())
+        {
+            kit.get().apply(player);
+        }
+        else
+        {
+            Kit.EMPTY.apply(player);
+        }
 
     }
 
     @Override
     public void onPlayerQuit(Session session, Player player) {
+        session.removeProfile(player);
+
+        //TODO Teleport player back to the lobby and clear their inventory.
+        Kit.EMPTY.apply(player);
+
+
 
     }
 
