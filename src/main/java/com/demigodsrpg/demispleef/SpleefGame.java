@@ -92,7 +92,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         World world = session.getWorld().get();
 
         // Get the warmup spawn
-        warmupSpawn = LocationUtil.locationFromString(session, getConfig().getString("spawn",
+        warmupSpawn = LocationUtil.locationFromString(session, getConfig().getString("loc.spawn",
                 LocationUtil.stringFromLocation(world.getSpawnLocation(), false)));
     }
 
