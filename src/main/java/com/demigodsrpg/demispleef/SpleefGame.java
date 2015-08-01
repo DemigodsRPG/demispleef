@@ -34,14 +34,19 @@ import com.demigodsrpg.demigames.kit.MutableKit;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
+import com.google.common.collect.Lists;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.List;
 import java.util.Optional;
 
 public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin, FakeDeathMixin {
@@ -137,6 +142,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     // -- LISTENERS -- //
 
+    //Move event for cancelling the game
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         Optional<Session> opSession = checkPlayer(event.getPlayer());
@@ -147,6 +153,38 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
                 session.updateStage(DefaultStage.END, true);
             }
         }
+    }
+
+    //List of blocks that can be broken
+    private final static List<Material> breakable = Lists.newArrayList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY, Material.DIRT, Material.TNT);
+
+    //Cancel breaking any other block than the ones specified above
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBreak(BlockBreakEvent e){
+        Block b = e.getBlock();
+        Optional<Session> opSession = checkPlayer(e.getPlayer());
+        if (opSession.isPresent()) {
+            Session session = opSession.get();
+
+            if(!session.getStage().equals(DefaultStage.PLAY) || !breakable.contains(b.getType())) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+
+
+    // -- PLAYER DEATH -- //
+
+    @Override
+    public void onDeath(Session session, EntityDamageEvent entityDamageEvent)
+    {
+        Player damaged = (Player) entityDamageEvent.getEntity();
+
+        //TODO Spectator mode
+
+        //TODO check if the player is the last one in the game, then start the end timer
     }
 
     // -- META DATA -- //
@@ -169,18 +207,24 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     // -- WIN/LOSE/TIE CONDITIONS -- //
 
+
+
     @Override
-    public void onWin(Session session, Player player) {
+    public void onWin(Session session, Player player)
+    {
+
 
     }
 
     @Override
-    public void onLose(Session session, Player player) {
+    public void onLose(Session session, Player player)
+    {
 
     }
 
     @Override
-    public void onTie(Session session, Player player) {
+    public void onTie(Session session, Player player)
+    {
 
     }
 
@@ -225,10 +269,5 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         for (Session session : Demigames.getSessionRegistry().fromGame(this)) {
             session.endSession(false);
         }
-    }
-
-    @Override
-    public void onDeath(Session session, EntityDamageEvent entityDamageEvent) {
-
     }
 }
