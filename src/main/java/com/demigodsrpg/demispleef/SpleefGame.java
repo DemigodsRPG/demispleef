@@ -126,7 +126,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
         // Update the stage
         if (session.getCurrentRound() == getTotalRounds()) {
-            session.endSession(false);
+            session.endSession();
         } else {
             session.updateStage(DefaultStage.RESET, true);
         }
@@ -146,7 +146,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         Optional<Session> opSession = checkPlayer(event.getPlayer());
         if (opSession.isPresent()) {
             Session session = opSession.get();
-            if (DefaultStage.PLAY.equals(session.getStage()) && event.getTo().distance(event.getPlayer().getWorld().getSpawnLocation()) > 10) {
+            if (DefaultStage.PLAY.equals(session.getStage()) && event.getTo().distance(getWarmupSpawn(session)) > 30) {
                 // Update the stage
                 session.updateStage(DefaultStage.END, true);
             }
@@ -201,9 +201,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     @Override
     public void onServerStop() {
-        for (Session session : Demigames.getSessionRegistry().fromGame(this)) {
-            session.endSession(false);
-        }
+        Demigames.getSessionRegistry().fromGame(this).forEach(com.demigodsrpg.demigames.session.Session::endSession);
     }
 
     // -- PLAYER JOIN/QUIT -- //
@@ -221,9 +219,9 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
                 // Add the spleef kit to the player if it is existing
                 Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
                 if (kit.isPresent()) {
-                    ImmutableKit.of(kit.get()).apply(event.getPlayer());
+                    ImmutableKit.of(kit.get()).apply(event.getPlayer(), true);
                 } else {
-                    Kit.EMPTY.apply(event.getPlayer());
+                    Kit.EMPTY.apply(event.getPlayer(), true);
                 }
             }
         }
@@ -233,7 +231,15 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLeave(PlayerQuitMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
-            Kit.EMPTY.apply(event.getPlayer());
+            Kit.EMPTY.apply(event.getPlayer(), true);
+
+            Optional<Session> opSession = checkPlayer(event.getPlayer());
+            if (opSession.isPresent()) {
+                Session session = opSession.get();
+                if (session.getProfiles().size() < 1) {
+                    session.endSession();
+                }
+            }
         }
     }
 
