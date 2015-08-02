@@ -30,11 +30,13 @@ import com.demigodsrpg.demigames.game.mixin.SetupNoTeamsMixin;
 import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.impl.util.LocationUtil;
+import com.demigodsrpg.demigames.kit.ImmutableKit;
 import com.demigodsrpg.demigames.kit.Kit;
 import com.demigodsrpg.demigames.kit.MutableKit;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -155,7 +157,11 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     @Override
     public Location getWarmupSpawn(Session session) {
-        return LocationUtil.locationFromString(session.getId(), warmupSpawn);
+        Optional<Location> spawn = Optional.ofNullable(LocationUtil.locationFromString(session.getId(), warmupSpawn));
+        if (spawn.isPresent()) {
+            return spawn.get();
+        }
+        return Bukkit.getWorld(session.getId()).getSpawnLocation();
     }
 
     @Override
@@ -215,7 +221,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
                 // Add the spleef kit to the player if it is existing
                 Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
                 if (kit.isPresent()) {
-                    kit.get().apply(event.getPlayer());
+                    ImmutableKit.of(kit.get()).apply(event.getPlayer());
                 } else {
                     Kit.EMPTY.apply(event.getPlayer());
                 }
