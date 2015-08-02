@@ -22,6 +22,7 @@
 
 package com.demigodsrpg.demispleef;
 
+import com.demigodsrpg.demigames.event.*;
 import com.demigodsrpg.demigames.game.Game;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
@@ -45,6 +46,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import java.util.Optional;
 
 public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin, FakeDeathMixin {
+
     // -- SETTINGS -- //
 
     @Override
@@ -84,7 +86,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     // -- LOCATIONS -- //
 
-    private Location warmupSpawn;
+    private String warmupSpawn;
 
     @Override
     public void setupLocations(Session session) {
@@ -92,8 +94,8 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         World world = session.getWorld().get();
 
         // Get the warmup spawn
-        warmupSpawn = LocationUtil.locationFromString(session, getConfig().getString("loc.spawn",
-                LocationUtil.stringFromLocation(world.getSpawnLocation(), false)));
+        warmupSpawn = getConfig().getString("loc.spawn",
+                LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
     }
 
     // -- STAGES -- //
@@ -152,8 +154,8 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     // -- META DATA -- //
 
     @Override
-    public Location getWarmupSpawn() {
-        return warmupSpawn;
+    public Location getWarmupSpawn(Session session) {
+        return LocationUtil.locationFromString(session.getId(), warmupSpawn);
     }
 
     @Override
@@ -169,47 +171,18 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     // -- WIN/LOSE/TIE CONDITIONS -- //
 
-    @Override
-    public void onWin(Session session, Player player) {
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWin(PlayerWinMinigameEvent event) {
 
     }
 
-    @Override
-    public void onLose(Session session, Player player) {
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLose(PlayerLoseMinigameEvent event) {
 
     }
 
-    @Override
-    public void onTie(Session session, Player player) {
-
-    }
-
-    // -- PLAYER JOIN/QUIT -- //
-
-    @Override
-    public void onPlayerJoin(Session session, Player player) {
-        //Add the player to the session
-        session.addProfile(Demigames.getProfileRegistry().fromPlayer(player));
-
-        //Add the spleef kit to the player if it is existing
-        Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
-        if(kit.isPresent())
-        {
-            kit.get().apply(player);
-        }
-        else
-        {
-            Kit.EMPTY.apply(player);
-        }
-
-    }
-
-    @Override
-    public void onPlayerQuit(Session session, Player player) {
-        session.removeProfile(player);
-
-        //TODO Teleport player back to the lobby and clear their inventory.
-        Kit.EMPTY.apply(player);
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTie(PlayerTieMinigameEvent event) {
 
     }
 
@@ -227,8 +200,42 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         }
     }
 
-    @Override
-    public void onDeath(Session session, EntityDamageEvent entityDamageEvent) {
+    // -- PLAYER JOIN/QUIT -- //
 
+    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinMinigameEvent event) {
+        if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
+            Optional<Session> opSession = checkPlayer(event.getPlayer());
+
+            if (opSession.isPresent()) {
+                // TODO Only has warmup join atm
+                event.getPlayer().teleport(getWarmupSpawn(opSession.get()));
+
+                // Add the spleef kit to the player if it is existing
+                Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
+                if (kit.isPresent()) {
+                    kit.get().apply(event.getPlayer());
+                } else {
+                    Kit.EMPTY.apply(event.getPlayer());
+                }
+            }
+        }
+    }
+
+    @Override
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLeave(PlayerQuitMinigameEvent event) {
+        if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
+            Kit.EMPTY.apply(event.getPlayer());
+        }
+    }
+
+    // -- FAKE DEATH -- //
+
+    @Override
+    public void onDeath(Session session, EntityDamageEvent event) {
+        Player player = (Player) event.getEntity();
+        player.sendMessage("HAHAHAH you died.");
     }
 }
