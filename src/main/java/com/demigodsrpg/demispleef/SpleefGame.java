@@ -22,6 +22,7 @@
 
 package com.demigodsrpg.demispleef;
 
+import com.demigodsrpg.demigames.event.*;
 import com.demigodsrpg.demigames.game.Game;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
@@ -29,19 +30,25 @@ import com.demigodsrpg.demigames.game.mixin.SetupNoTeamsMixin;
 import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.impl.util.LocationUtil;
+import com.demigodsrpg.demigames.kit.ImmutableKit;
 import com.demigodsrpg.demigames.kit.Kit;
 import com.demigodsrpg.demigames.kit.MutableKit;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin, FakeDeathMixin {
@@ -84,7 +91,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
 
     // -- LOCATIONS -- //
 
-    private Location warmupSpawn;
+    private String warmupSpawn;
 
     @Override
     public void setupLocations(Session session) {
@@ -92,8 +99,8 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
         World world = session.getWorld().get();
 
         // Get the warmup spawn
-        warmupSpawn = LocationUtil.locationFromString(session, getConfig().getString("loc.spawn",
-                LocationUtil.stringFromLocation(world.getSpawnLocation(), false)));
+        warmupSpawn = getConfig().getString("loc.spawn",
+                LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
     }
 
     // -- STAGES -- //
@@ -150,35 +157,18 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     }
 
     //List of blocks that can be broken
-    private final static List<Material> breakable = Lists.newArrayList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY, Material.DIRT, Material.TNT);
+    private final static List<Material> breakable = Arrays.asList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY, Material.DIRT, Material.TNT);
 
     //Cancel breaking any other block than the ones specified above
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBreak(BlockBreakEvent e){
-        Block b = e.getBlock();
-        Optional<Session> opSession = checkPlayer(e.getPlayer());
+    public void onBreak(BlockBreakEvent event) {
+        Optional<Session> opSession = checkPlayer(event.getPlayer());
         if (opSession.isPresent()) {
             Session session = opSession.get();
-
-            if(!session.getStage().equals(DefaultStage.PLAY) || !breakable.contains(b.getType())) {
-                e.setCancelled(true);
+            if (!session.getStage().equals(DefaultStage.PLAY) || !breakable.contains(event.getBlock().getType())) {
+                event.setCancelled(true);
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-
-
-    // -- PLAYER DEATH -- //
-
-    @Override
-    public void onDeath(Session session, EntityDamageEvent entityDamageEvent)
-    {
-        Player damaged = (Player) entityDamageEvent.getEntity();
-
-        //TODO Spectator mode
-
-        //TODO check if the player is the last one in the game, then start the end timer
     }
 
     // -- META DATA -- //
