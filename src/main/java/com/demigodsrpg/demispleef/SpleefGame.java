@@ -24,9 +24,9 @@ package com.demigodsrpg.demispleef;
 
 import com.demigodsrpg.demigames.event.*;
 import com.demigodsrpg.demigames.game.Game;
+import com.demigodsrpg.demigames.game.mixin.ConfinedSpectateMixin;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
-import com.demigodsrpg.demigames.game.mixin.SetupNoTeamsMixin;
 import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.impl.util.LocationUtil;
@@ -47,11 +47,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, ErrorTimerMixin, FakeDeathMixin {
+public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, FakeDeathMixin,
+        ConfinedSpectateMixin {
     // -- SETTINGS -- //
 
     @Override
@@ -92,15 +94,32 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     // -- LOCATIONS -- //
 
     private String warmupSpawn;
+    private String spectateSpawn;
 
-    @Override
-    public void setupLocations(Session session) {
-        // Get the world
-        World world = session.getWorld().get();
+    @StageHandler(stage = DefaultStage.SETUP)
+    public void roundSetup(Session session) {
+        // Make sure the world is present
+        if (session.getWorld().isPresent()) {
+            // Get the world
+            World world = session.getWorld().get();
 
-        // Get the warmup spawn
-        warmupSpawn = getConfig().getString("loc.spawn",
-                LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
+            // Get the warmup spawn
+            warmupSpawn = getConfig().getString("loc.spawn",
+                    LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
+
+            // Get the spectate spawn
+            spectateSpawn = getConfig().getString("loc.spectate",
+                    LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
+
+            // Setup spectator data
+            session.getData().put("spectators", new ArrayList<String>());
+
+            // Update the stage TODO This isn't the best place to start the warmup
+            session.updateStage(DefaultStage.WARMUP, true);
+        } else {
+            // Update the stage
+            session.updateStage(DefaultStage.ERROR, true);
+        }
     }
 
     // -- STAGES -- //
@@ -183,6 +202,22 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     }
 
     @Override
+    public Location getSpectatorSpawn(Session session) {
+        Optional<Location> spawn = Optional.ofNullable(LocationUtil.locationFromString(session.getId(), spectateSpawn));
+        if (spawn.isPresent()) {
+            return spawn.get();
+        }
+        return Bukkit.getWorld(session.getId()).getSpawnLocation();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getSpectators(Session session) {
+        return (List<String>) session.getData().get("spectators");
+    }
+
+
+    @Override
     public String getName() {
         return "Spleef";
     }
@@ -225,7 +260,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     // -- PLAYER JOIN/QUIT -- //
 
     @Override
-    @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
             Optional<Session> opSession = checkPlayer(event.getPlayer());
@@ -246,7 +280,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, SetupNoTeamsMixin, Er
     }
 
     @Override
-    @EventHandler(priority = EventPriority.MONITOR)
     public void onLeave(PlayerQuitMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
             Kit.EMPTY.apply(event.getPlayer(), true);
