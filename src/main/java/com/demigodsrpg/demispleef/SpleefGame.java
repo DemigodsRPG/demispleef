@@ -163,18 +163,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     // -- LISTENERS -- //
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMove(PlayerMoveEvent event) {
-        Optional<Session> opSession = checkPlayer(event.getPlayer());
-        if (opSession.isPresent()) {
-            Session session = opSession.get();
-            if (DefaultStage.PLAY.equals(session.getStage()) && event.getTo().distance(getWarmupSpawn(session)) > 30) {
-                // Update the stage
-                session.updateStage(DefaultStage.END, true);
-            }
-        }
-    }
-
     //List of blocks that can be broken
     private final static List<Material> breakable = Arrays.asList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY, Material.DIRT, Material.TNT);
 
@@ -300,5 +288,12 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     public void onDeath(Session session, EntityDamageEvent event) {
         Player player = (Player) event.getEntity();
         player.sendMessage("HAHAHAH you died.");
+        callSpectate(session, player);
+
+        if(session.getProfiles().stream().allMatch(profile -> profile.))
+        {
+            session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p -> p.sendMessage(player + " won the game!")));
+            session.updateStage(DefaultStage.END, true);
+        }
     }
 }
