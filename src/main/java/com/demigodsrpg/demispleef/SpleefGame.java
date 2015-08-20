@@ -44,7 +44,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -250,6 +249,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     // -- PLAYER JOIN/QUIT -- //
 
     @Override
+    @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
             Optional<Session> opSession = checkPlayer(event.getPlayer());
@@ -270,6 +270,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     }
 
     @Override
+    @EventHandler(priority = EventPriority.LOW)
     public void onLeave(PlayerQuitMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
             Kit.EMPTY.apply(event.getPlayer(), true);
@@ -287,15 +288,23 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     // -- FAKE DEATH -- //
 
     @Override
-    public void onDeath(Session session, EntityDamageEvent event) {
-        Player player = (Player) event.getEntity();
-        player.sendMessage("HAHAHAH you died.");
-        callSpectate(session, player);
+    @EventHandler(priority = EventPriority.LOW)
+    public void onDeath(FakeDeathMixin.Event event) {
+        if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
+            Optional<Session> opSession = event.getSession();
+            if (opSession.isPresent()) {
+                Session session = opSession.get();
+                Player player = event.getPlayer();
 
-        if (session.getProfiles().stream().allMatch(profile -> isSpectator(session, profile))) {
-            session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p ->
-                    p.sendMessage(player + " won the game!")));
-            session.updateStage(DefaultStage.END, true);
+                player.sendMessage("HAHAHAH you died.");
+                callSpectate(session, player);
+
+                if (session.getProfiles().stream().allMatch(profile -> isSpectator(session, profile))) {
+                    session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p ->
+                            p.sendMessage(player + " won the game!")));
+                    session.updateStage(DefaultStage.END, true);
+                }
+            }
         }
     }
 }
