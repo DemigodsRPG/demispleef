@@ -275,7 +275,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
             Kit.EMPTY.apply(event.getPlayer(), true);
 
-            Optional<Session> opSession = checkPlayer(event.getPlayer());
+            Optional<Session> opSession = event.getSession();
             if (opSession.isPresent()) {
                 Session session = opSession.get();
                 if (session.getProfiles().size() < 1) {
