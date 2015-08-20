@@ -86,6 +86,11 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     }
 
     @Override
+    public int getMaximumPlayers() {
+        return 20;
+    }
+
+    @Override
     public int getNumberOfTeams() {
         return 0;
     }
@@ -103,10 +108,10 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
             World world = session.getWorld().get();
 
             // Get the warmup spawn
-            warmupSpawn = getConfigLocation("loc.spawn", world.getSpawnLocation());
+            warmupSpawn = getLocation("spawn", world.getSpawnLocation());
 
             // Get the spectate spawn
-            spectateSpawn = getConfigLocation("loc.spectate", world.getSpawnLocation());
+            spectateSpawn = getLocation("spectate", world.getSpawnLocation());
 
             // Setup spectator data
             session.getData().put("spectators", new ArrayList<String>());
