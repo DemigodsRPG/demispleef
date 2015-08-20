@@ -24,12 +24,12 @@ package com.demigodsrpg.demispleef;
 
 import com.demigodsrpg.demigames.event.*;
 import com.demigodsrpg.demigames.game.Game;
+import com.demigodsrpg.demigames.game.GameLocation;
 import com.demigodsrpg.demigames.game.mixin.ConfinedSpectateMixin;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
 import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
 import com.demigodsrpg.demigames.impl.Demigames;
-import com.demigodsrpg.demigames.impl.util.LocationUtil;
 import com.demigodsrpg.demigames.kit.ImmutableKit;
 import com.demigodsrpg.demigames.kit.Kit;
 import com.demigodsrpg.demigames.kit.MutableKit;
@@ -45,7 +45,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,8 +92,8 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     // -- LOCATIONS -- //
 
-    private String warmupSpawn;
-    private String spectateSpawn;
+    private GameLocation warmupSpawn;
+    private GameLocation spectateSpawn;
 
     @StageHandler(stage = DefaultStage.SETUP)
     public void roundSetup(Session session) {
@@ -104,12 +103,10 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
             World world = session.getWorld().get();
 
             // Get the warmup spawn
-            warmupSpawn = getConfig().getString("loc.spawn",
-                    LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
+            warmupSpawn = getConfigLocation("loc.spawn", world.getSpawnLocation());
 
             // Get the spectate spawn
-            spectateSpawn = getConfig().getString("loc.spectate",
-                    LocationUtil.stringFromLocation(world.getSpawnLocation(), false));
+            spectateSpawn = getConfigLocation("loc.spectate", world.getSpawnLocation());
 
             // Setup spectator data
             session.getData().put("spectators", new ArrayList<String>());
@@ -182,7 +179,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     @Override
     public Location getWarmupSpawn(Session session) {
-        Optional<Location> spawn = Optional.ofNullable(LocationUtil.locationFromString(session.getId(), warmupSpawn));
+        Optional<Location> spawn = warmupSpawn.toLocation(session.getId());
         if (spawn.isPresent()) {
             return spawn.get();
         }
@@ -191,7 +188,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     @Override
     public Location getSpectatorSpawn(Session session) {
-        Optional<Location> spawn = Optional.ofNullable(LocationUtil.locationFromString(session.getId(), spectateSpawn));
+        Optional<Location> spawn = spectateSpawn.toLocation(session.getId());
         if (spawn.isPresent()) {
             return spawn.get();
         }
@@ -290,9 +287,9 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
         player.sendMessage("HAHAHAH you died.");
         callSpectate(session, player);
 
-        if(session.getProfiles().stream().allMatch(profile -> profile.))
-        {
-            session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p -> p.sendMessage(player + " won the game!")));
+        if (session.getProfiles().stream().allMatch(profile -> isSpectator(session, profile))) {
+            session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p ->
+                    p.sendMessage(player + " won the game!")));
             session.updateStage(DefaultStage.END, true);
         }
     }
