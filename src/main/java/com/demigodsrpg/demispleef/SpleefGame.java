@@ -43,7 +43,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,16 +166,19 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     // -- LISTENERS -- //
 
     //List of blocks that can be broken
-    private final static List<Material> breakable = Arrays.asList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY, Material.DIRT, Material.TNT);
+    private final static List<Material> BREAKABLE = Arrays.asList(Material.SNOW_BLOCK, Material.WOOL, Material.CLAY,
+            Material.DIRT, Material.TNT);
 
     //Cancel breaking any other block than the ones specified above
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBreak(BlockBreakEvent event) {
+    public void onBreak(PlayerInteractEvent event) {
         Optional<Session> opSession = checkPlayer(event.getPlayer());
-        if (opSession.isPresent()) {
-            Session session = opSession.get();
-            if (!session.getStage().equals(DefaultStage.PLAY) || !breakable.contains(event.getBlock().getType())) {
-                event.setCancelled(true);
+        if (Action.LEFT_CLICK_BLOCK == event.getAction()) {
+            if (opSession.isPresent()) {
+                Session session = opSession.get();
+                if (!session.getStage().equals(DefaultStage.PLAY) || !BREAKABLE.contains(event.getClickedBlock().getType())) {
+                    event.getClickedBlock().setType(Material.AIR);
+                }
             }
         }
     }
@@ -198,13 +202,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
         }
         return Bukkit.getWorld(session.getId()).getSpawnLocation();
     }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<String> getSpectators(Session session) {
-        return (List<String>) session.getData().get("spectators");
-    }
-
 
     @Override
     public String getName() {
@@ -299,10 +296,13 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
                 player.sendMessage("HAHAHAH you died.");
                 callSpectate(session, player);
 
+                // TODO Needs to stop when 1 remains, not stop when the last one dies
                 if (session.getProfiles().stream().allMatch(profile -> isSpectator(session, profile))) {
                     session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p ->
-                            p.sendMessage(player + " won the game!")));
-                    session.updateStage(DefaultStage.END, true);
+                            p.sendMessage(player.getDisplayName() + " won the game!")));
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(Demigames.getInstance(), () -> {
+                        session.updateStage(DefaultStage.END, true);
+                    }, 60);
                 }
             }
         }
