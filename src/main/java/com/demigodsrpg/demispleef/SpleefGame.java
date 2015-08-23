@@ -36,10 +36,7 @@ import com.demigodsrpg.demigames.kit.MutableKit;
 import com.demigodsrpg.demigames.session.Session;
 import com.demigodsrpg.demigames.stage.DefaultStage;
 import com.demigodsrpg.demigames.stage.StageHandler;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -176,8 +173,9 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
         if (Action.LEFT_CLICK_BLOCK == event.getAction()) {
             if (opSession.isPresent()) {
                 Session session = opSession.get();
-                if (!session.getStage().equals(DefaultStage.PLAY) || !BREAKABLE.contains(event.getClickedBlock().getType())) {
-                    event.getClickedBlock().setType(Material.AIR);
+                if (!event.getPlayer().getItemInHand().getType().name().contains("SPADE") || !session.getStage().
+                        equals(DefaultStage.PLAY) || !BREAKABLE.contains(event.getClickedBlock().getType())) {
+                    event.setCancelled(true);
                 }
             }
         }
@@ -254,6 +252,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
             if (opSession.isPresent()) {
                 // TODO Only has warmup join atm
                 event.getPlayer().teleport(getWarmupSpawn(opSession.get()));
+                event.getPlayer().setGameMode(GameMode.SURVIVAL);
 
                 // Add the spleef kit to the player if it is existing
                 Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
@@ -284,7 +283,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     // -- FAKE DEATH -- //
 
-    @Override
     @EventHandler(priority = EventPriority.LOW)
     public void onDeath(FakeDeathMixin.Event event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
