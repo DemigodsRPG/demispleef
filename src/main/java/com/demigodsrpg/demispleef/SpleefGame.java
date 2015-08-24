@@ -41,6 +41,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     //Cancel breaking any other block than the ones specified above
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBreak(PlayerInteractEvent event) {
+    public void onInteract(PlayerInteractEvent event) {
         Optional<Session> opSession = checkPlayer(event.getPlayer());
         if (Action.LEFT_CLICK_BLOCK == event.getAction()) {
             if (opSession.isPresent()) {
@@ -177,6 +178,17 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
                         equals(DefaultStage.PLAY) || !BREAKABLE.contains(event.getClickedBlock().getType())) {
                     event.setCancelled(true);
                 }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBreak(BlockBreakEvent event) {
+        Optional<Session> opSession = checkPlayer(event.getPlayer());
+        if (opSession.isPresent()) {
+            event.setCancelled(true);
+            if (BREAKABLE.contains(event.getBlock().getType())) {
+                event.getBlock().setType(Material.AIR);
             }
         }
     }
