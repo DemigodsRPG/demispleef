@@ -93,6 +93,11 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
         return 0;
     }
 
+    @Override
+    public List<String> defaultUnlockables() {
+        return new ArrayList<>(); // No default unlockables for this game
+    }
+
     // -- LOCATIONS -- //
 
     private GameLocation warmupSpawn;
