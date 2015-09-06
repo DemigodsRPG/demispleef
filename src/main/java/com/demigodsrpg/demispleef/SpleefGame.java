@@ -29,7 +29,6 @@ import com.demigodsrpg.demigames.game.mixin.ConfinedSpectateMixin;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
 import com.demigodsrpg.demigames.game.mixin.WarmupLobbyMixin;
-import com.demigodsrpg.demigames.impl.Demigames;
 import com.demigodsrpg.demigames.kit.ImmutableKit;
 import com.demigodsrpg.demigames.kit.Kit;
 import com.demigodsrpg.demigames.kit.MutableKit;
@@ -255,7 +254,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     @Override
     public void onServerStop() {
-        Demigames.getSessionRegistry().fromGame(this).forEach(com.demigodsrpg.demigames.session.Session::endSession);
+        getBackend().getSessionRegistry().fromGame(this).forEach(com.demigodsrpg.demigames.session.Session::endSession);
     }
 
     // -- PLAYER JOIN/QUIT -- //
@@ -272,11 +271,11 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
                 event.getPlayer().setGameMode(GameMode.SURVIVAL);
 
                 // Add the spleef kit to the player if it is existing
-                Optional<MutableKit> kit = Demigames.getKitRegistry().fromKey("spleef");
+                Optional<MutableKit> kit = getBackend().getKitRegistry().fromKey("spleef");
                 if (kit.isPresent()) {
-                    ImmutableKit.of(kit.get()).apply(event.getPlayer(), true);
+                    ImmutableKit.of(kit.get()).apply(getBackend(), event.getPlayer(), true);
                 } else {
-                    Kit.EMPTY.apply(event.getPlayer(), true);
+                    Kit.EMPTY.apply(getBackend(), event.getPlayer(), true);
                 }
             }
         }
@@ -286,7 +285,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     @EventHandler(priority = EventPriority.LOW)
     public void onLeave(PlayerQuitMinigameEvent event) {
         if (event.getGame().isPresent() && event.getGame().get().equals(this)) {
-            Kit.EMPTY.apply(event.getPlayer(), true);
+            Kit.EMPTY.apply(getBackend(), event.getPlayer(), true);
 
             Optional<Session> opSession = event.getSession();
             if (opSession.isPresent()) {
@@ -315,7 +314,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
                 if (session.getProfiles().stream().allMatch(profile -> isSpectator(session, profile))) {
                     session.getProfiles().stream().forEach(profile -> profile.getPlayer().ifPresent(p ->
                             p.sendMessage(player.getDisplayName() + " won the game!")));
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(Demigames.getInstance(), () -> {
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(getBackend(), () -> {
                         session.updateStage(DefaultStage.END, true);
                     }, 60);
                 }
