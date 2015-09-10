@@ -25,6 +25,7 @@ package com.demigodsrpg.demispleef;
 import com.demigodsrpg.demigames.event.*;
 import com.demigodsrpg.demigames.game.Game;
 import com.demigodsrpg.demigames.game.GameLocation;
+import com.demigodsrpg.demigames.game.Minigame;
 import com.demigodsrpg.demigames.game.mixin.ConfinedSpectateMixin;
 import com.demigodsrpg.demigames.game.mixin.ErrorTimerMixin;
 import com.demigodsrpg.demigames.game.mixin.FakeDeathMixin;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@Minigame
 public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, FakeDeathMixin,
         ConfinedSpectateMixin {
     // -- SETTINGS -- //
