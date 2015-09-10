@@ -74,7 +74,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
     @Override
     public int getMinimumPlayers() {
-        return 3;
+        return 2;
     }
 
     @Override
