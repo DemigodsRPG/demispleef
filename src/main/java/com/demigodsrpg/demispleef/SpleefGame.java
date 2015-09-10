@@ -68,11 +68,6 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     }
 
     @Override
-    public boolean canLateJoin() {
-        return false;
-    }
-
-    @Override
     public boolean hasSpectateChat() {
         return false;
     }
@@ -93,7 +88,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     }
 
     @Override
-    public List<String> defaultUnlockables() {
+    public List<String> getDefaultUnlockables() {
         return new ArrayList<>(); // No default unlockables for this game
     }
 
@@ -226,6 +221,11 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     @Override
     public String getDirectory() {
         return "spleef";
+    }
+
+    @Override
+    public GameMode getDefaultGamemode() {
+        return GameMode.SURVIVAL;
     }
 
     // -- WIN/LOSE/TIE CONDITIONS -- //
