@@ -200,7 +200,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
     // -- META DATA -- //
 
     @Override
-    public Location getWarmupSpawn(Session session) {
+    public Location getWarmupSpawn(Session session, Player ignored) {
         Optional<Location> spawn = warmupSpawn.toLocation(session.getId());
         if (spawn.isPresent()) {
             return spawn.get();
@@ -267,7 +267,7 @@ public class SpleefGame implements Game, WarmupLobbyMixin, ErrorTimerMixin, Fake
 
             if (opSession.isPresent()) {
                 // TODO Only has warmup join atm
-                event.getPlayer().teleport(getWarmupSpawn(opSession.get()));
+                event.getPlayer().teleport(getWarmupSpawn(opSession.get(), null));
                 event.getPlayer().setGameMode(GameMode.SURVIVAL);
 
                 // Add the spleef kit to the player if it is existing
